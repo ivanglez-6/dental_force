@@ -35,7 +35,7 @@ class SidebarButton(QPushButton):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Dental Force Monitor — Dashboard")
+        self.setWindowTitle("Monitor de Fuerza Dental — Panel Principal")
         self.resize(1200, 760)
 
         # Settings
@@ -102,11 +102,11 @@ class MainWindow(QMainWindow):
 
         # Sidebar buttons
         icon_base = os.path.join(os.path.dirname(__file__), "icons")
-        self.btn_dashboard = SidebarButton("Dashboard", os.path.join(icon_base, "dashboard.svg"))
-        self.btn_ble = SidebarButton("BLE / Device", os.path.join(icon_base, "ble.svg"))
-        self.btn_history = SidebarButton("History / Logs", os.path.join(icon_base, "history.svg"))
-        self.btn_reports = SidebarButton("Reports / Export", os.path.join(icon_base, "reports.svg"))
-        self.btn_auth = SidebarButton("Account / Auth", os.path.join(icon_base, "user.svg"))
+        self.btn_dashboard = SidebarButton("Panel Principal", os.path.join(icon_base, "dashboard.svg"))
+        self.btn_ble = SidebarButton("BLE / Dispositivo", os.path.join(icon_base, "ble.svg"))
+        self.btn_history = SidebarButton("Historial / Registros", os.path.join(icon_base, "history.svg"))
+        self.btn_reports = SidebarButton("Reportes / Exportar", os.path.join(icon_base, "reports.svg"))
+        self.btn_auth = SidebarButton("Cuenta / Autenticación", os.path.join(icon_base, "user.svg"))
 
         for b in [self.btn_dashboard, self.btn_ble, self.btn_history, self.btn_reports, self.btn_auth]:
             b.clicked.connect(self.on_nav_clicked)
@@ -229,11 +229,11 @@ class MainWindow(QMainWindow):
         if collapsed:
             self.sidebar.setMaximumWidth(320)
             self.sidebar.setMinimumWidth(220)
-            self.btn_dashboard.setText("Dashboard")
-            self.btn_ble.setText("BLE / Device")
-            self.btn_history.setText("History / Logs")
-            self.btn_reports.setText("Reports / Export")
-            self.btn_auth.setText("Account / Auth")
+            self.btn_dashboard.setText("Panel Principal")
+            self.btn_ble.setText("BLE / Dispositivo")
+            self.btn_history.setText("Historial / Registros")
+            self.btn_reports.setText("Reportes / Exportar")
+            self.btn_auth.setText("Cuenta / Autenticación")
         else:
             self.sidebar.setMaximumWidth(64)
             self.sidebar.setMinimumWidth(64)

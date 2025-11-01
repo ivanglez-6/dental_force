@@ -15,7 +15,7 @@ class QuickActionsWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8,8,8,8)
 
-        title = QLabel("<b>Quick Actions</b>")
+        title = QLabel("<b>Acciones Rápidas</b>")
         title.setObjectName("quickTitle")
         layout.addWidget(title, alignment=Qt.AlignTop)
 

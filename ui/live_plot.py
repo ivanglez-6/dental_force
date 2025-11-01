@@ -10,6 +10,10 @@ import random
 import time
 import math
 
+# Color constants for dual sensor display
+COLOR_LEFT = '#2196F3'   # Blue for left sensor
+COLOR_RIGHT = '#FF5722'  # Orange for right sensor
+
 class LivePlot(QWidget):
     def __init__(self, storage):
         super().__init__()
@@ -23,9 +27,9 @@ class LivePlot(QWidget):
         self.ax.set_facecolor("#071827")
         self.ax.tick_params(colors="#004166")
         self.ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-        self.ax.set_title("Force over time (last samples)", color="#0E2C46")
-        self.ax.set_xlabel("Sample", color="#0E2C46")
-        self.ax.set_ylabel("Force (N)", color="#0E2C46")
+        self.ax.set_title("Fuerza en el tiempo (últimas muestras)", color="#0E2C46")
+        self.ax.set_xlabel("Muestra", color="#0E2C46")
+        self.ax.set_ylabel("Fuerza (N)", color="#0E2C46")
 
         # Force label + semaphore bar
         self.force_label = QLabel("Fuerza: -- N | -- kg")
@@ -100,45 +104,88 @@ class LivePlot(QWidget):
         if self.simulating:
             self._simulate_one_sample()
 
-        data = getattr(self.storage, "current_session_data", [])[-200:]
+        # Get all current session data
+        data = getattr(self.storage, "current_session_data", [])
+
         if not data:
             self.ax.clear()
-            self.ax.set_title("Waiting for data...", color="#0E2C46")
+            self.ax.set_title("Esperando datos...", color="#0E2C46")
             self.canvas.draw()
             # keep label default
             self.force_label.setText("Fuerza: -- N | -- kg")
             self.force_bar.setValue(0)
             return
 
-        raw = [d.get("force", 0) for d in data]
-        y_n = [self._convert_raw_to_force(r)[0] for r in raw]
-        x = list(range(len(y_n)))
+        # Filter data by sensor ID
+        left_data = [r for r in data if r.get('sensorId', 1) == 1]
+        right_data = [r for r in data if r.get('sensorId', 1) == 2]
 
-        # draw plot
+        # Limit to last 200 records per sensor
+        left_data = left_data[-200:]
+        right_data = right_data[-200:]
+
+        # Convert forces to Newtons for left sensor
+        left_forces_N = [(r['force']) * 50 for r in left_data]
+
+        # Convert forces to Newtons for right sensor
+        right_forces_N = [(r['force']) * 50 for r in right_data]
+
+        # Clear the plot
         self.ax.clear()
         self.ax.set_facecolor("#294B69")
-        self.ax.plot(x, y_n, linewidth=2, color="#0003cf")
-        self.ax.set_title("Force over time (last samples)", color="#0003cf")
-        self.ax.set_xlabel("Sample", color="#0003cf")
-        self.ax.set_ylabel("Force (N)", color="#0003cf")
+
+        # Plot left sensor data if available
+        if left_forces_N:
+            self.ax.plot(left_forces_N, color=COLOR_LEFT, linewidth=2, label='Sensor Izquierdo')
+
+        # Plot right sensor data if available
+        if right_forces_N:
+            self.ax.plot(right_forces_N, color=COLOR_RIGHT, linewidth=2, label='Sensor Derecho')
+
+        # Add legend if both sensors have data
+        if left_forces_N and right_forces_N:
+            self.ax.legend(loc='upper right', fontsize=9)
+
+        # Set plot styling
+        self.ax.set_title("Fuerza en el tiempo (últimas muestras)", color="#0003cf")
+        self.ax.set_xlabel("Muestra", color="#0003cf")
+        self.ax.set_ylabel("Fuerza (N)", color="#0003cf")
         self.ax.grid(alpha=0.2)
-        # set y limits a little padding
-        max_y = max(y_n) if y_n else 1
+
+        # Set y limits with padding
+        all_forces = left_forces_N + right_forces_N
+        max_y = max(all_forces) if all_forces else 1
         self.ax.set_ylim(0, max(10, max_y * 1.2))
+
         self.canvas.draw()
 
-        # update last sample display
-        fn, fk = self._convert_raw_to_force(raw[-1])
-        self.force_label.setText(f"Fuerza: {fn:.2f} N | {fk:.3f} kg")
+        # Calculate latest force values
+        latest_left = left_forces_N[-1] if left_forces_N else 0
+        latest_right = right_forces_N[-1] if right_forces_N else 0
 
-        # update semaphore bar (scale relative to max_force)
+        # Update force display label
+        if latest_left > 0 and latest_right > 0:
+            # Dual sensor mode - show both with color coding
+            label_text = f"<span style='color:{COLOR_LEFT}'>Izq: {latest_left:.2f} N | {latest_left/9.81:.3f} kg</span>  <span style='color:{COLOR_RIGHT}'>Der: {latest_right:.2f} N | {latest_right/9.81:.3f} kg</span>"
+            self.force_label.setText(label_text)
+        elif latest_left > 0:
+            # Single sensor mode (backwards compatible)
+            self.force_label.setText(f"Fuerza: {latest_left:.2f} N | {latest_left/9.81:.3f} kg")
+        else:
+            self.force_label.setText("Fuerza: -- N | -- kg")
+
+        # Calculate maximum force for progress bar
+        max_force_value = max(latest_left, latest_right)
+
+        # Update progress bar with maximum force
         max_force = 50.0
-        level = min(fn / max_force * 100, 100)
+        level = min(max_force_value / max_force * 100, 100)
         self.force_bar.setValue(int(level))
 
-        if fn < 15:
+        # Update progress bar color based on thresholds
+        if max_force_value < 15:
             color = "#00ff7f"
-        elif fn < 35:
+        elif max_force_value < 35:
             color = "#ffd700"
         else:
             color = "#ff4040"

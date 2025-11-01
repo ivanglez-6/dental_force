@@ -33,17 +33,18 @@ class BLEService:
                 # Unpack 5 little-endian floats (20 bytes total)
                 emaL, emaR, sL, sR, event_flag = struct.unpack("<fffff", data)
 
-                # Use emaL (first float - left sensor smoothed value)
-                force = emaL
-
-                # Generate timestamp in milliseconds
+                # Generate timestamp in milliseconds (used for both sensors)
                 timestamp_ms = int(time.time() * 1000)
 
-                # Create CSV format: sensorId,force,timestamp
-                csv_string = f"1,{force},{timestamp_ms}"
+                # Create CSV format for left sensor: sensorId,force,timestamp
+                csv_left = f"1,{emaL},{timestamp_ms}"
 
-                # Call the provided callback with CSV string
-                callback(csv_string)
+                # Create CSV format for right sensor: sensorId,force,timestamp
+                csv_right = f"2,{emaR},{timestamp_ms}"
+
+                # Call the provided callback with both CSV strings
+                callback(csv_left)
+                callback(csv_right)
             except Exception as e:
                 print(f"BLE notification handler error: {e}")
 

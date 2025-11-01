@@ -8,14 +8,14 @@ class AuthWidget(QFrame):
         self.storage = storage
         self.setObjectName("card")
         self.layout = QVBoxLayout()
-        self.title = QLabel("User")
+        self.title = QLabel("Usuario")
         self.username = QLineEdit()
-        self.username.setPlaceholderText("Username")
+        self.username.setPlaceholderText("Nombre de usuario")
         self.password = QLineEdit()
-        self.password.setPlaceholderText("Password")
+        self.password.setPlaceholderText("Contraseña")
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
-        self.login_btn = QPushButton("Login")
-        self.signup_btn = QPushButton("Sign up")
+        self.login_btn = QPushButton("Iniciar sesión")
+        self.signup_btn = QPushButton("Registrarse")
         self.login_btn.clicked.connect(self.login)
         self.signup_btn.clicked.connect(self.signup)
         self.layout.addWidget(self.title)
@@ -30,23 +30,23 @@ class AuthWidget(QFrame):
         u = self.username.text().strip()
         p = self.password.text().strip()
         if not u or not p:
-            QMessageBox.warning(self, "Credentials", "Enter username and password")
+            QMessageBox.warning(self, "Credenciales", "Ingrese usuario y contraseña")
             return
         row = self.storage.check_login(u, p)
         if row:
             self.current_user = {"id": row[0], "username": row[1], "full_name": row[2]}
-            QMessageBox.information(self, "Logged", f"Welcome {self.current_user.get('username')}")
+            QMessageBox.information(self, "Sesión iniciada", f"Bienvenido {self.current_user.get('username')}")
         else:
-            QMessageBox.warning(self, "Failed", "Invalid credentials")
+            QMessageBox.warning(self, "Error", "Credenciales inválidas")
 
     def signup(self):
         u = self.username.text().strip()
         p = self.password.text().strip()
         if not u or not p:
-            QMessageBox.warning(self, "Credentials", "Enter username and password")
+            QMessageBox.warning(self, "Credenciales", "Ingrese usuario y contraseña")
             return
         ok = self.storage.create_user(u, p, full_name=u)
         if ok:
-            QMessageBox.information(self, "Created", "User created. You can login now.")
+            QMessageBox.information(self, "Creado", "Usuario creado. Ahora puede iniciar sesión.")
         else:
-            QMessageBox.warning(self, "Exists", "Username already exists.")
+            QMessageBox.warning(self, "Existe", "El nombre de usuario ya existe.")
