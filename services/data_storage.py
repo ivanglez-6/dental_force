@@ -56,7 +56,7 @@ class DataStorage:
         self.current_session_id = int(datetime.utcnow().timestamp())
         print(f"[DataStorage] Nueva sesión iniciada (temp id {self.current_session_id})")
 
-    def add_force_value(self, force, sensor_id=1):
+    def add_force_value(self, force, sensor_id=1, event=0.0):
         """Agregar una lectura simple (usado por LivePlot / simulación)."""
         if not self.session_active:
             self.start_new_session()
@@ -64,7 +64,8 @@ class DataStorage:
             "sensorId": sensor_id,
             "force": float(force),
             "timestamp": datetime.utcnow().timestamp(),
-            "date": datetime.utcnow().isoformat()
+            "date": datetime.utcnow().isoformat(),
+            "event": float(event)
         }
         self.current_session_data.append(record)
 
@@ -81,6 +82,10 @@ class DataStorage:
                 record["date"] = datetime.utcfromtimestamp(record["timestamp"]).isoformat()
             except Exception:
                 record["date"] = datetime.utcnow().isoformat()
+        # Ensure event field exists
+        if "event" not in record:
+            record["event"] = 0.0
+
         self.current_session_data.append(record)
         # ensure session flag
         if not self.session_active:

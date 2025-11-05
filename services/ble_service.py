@@ -31,16 +31,16 @@ class BLEService:
         async def _notification_handler(sender, data):
             try:
                 # Unpack 5 little-endian floats (20 bytes total)
-                emaL, emaR, sL, sR, event_flag = struct.unpack("<fffff", data)
+                sL, sR, F_L, F_R, event_flag = struct.unpack("<fffff", data)
 
                 # Generate timestamp in milliseconds (used for both sensors)
                 timestamp_ms = int(time.time() * 1000)
 
-                # Create CSV format for left sensor: sensorId,force,timestamp
-                csv_left = f"1,{emaL},{timestamp_ms}"
+                # Create CSV format: sensorId,force_kg,timestamp,event_flag
+                csv_left = f"1,{F_L},{timestamp_ms},{event_flag}"
 
-                # Create CSV format for right sensor: sensorId,force,timestamp
-                csv_right = f"2,{emaR},{timestamp_ms}"
+                # Create CSV format: sensorId,force_kg,timestamp,event_flag
+                csv_right = f"2,{F_R},{timestamp_ms},{event_flag}"
 
                 # Call the provided callback with both CSV strings
                 callback(csv_left)

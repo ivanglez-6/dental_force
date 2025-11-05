@@ -134,10 +134,10 @@ class MainWindow(QMainWindow):
         dash_layout = QHBoxLayout(dashboard_page)
         dash_layout.setContentsMargins(10, 10, 10, 10)
 
-        # Left column: graph + stats
+        # Left column: graph only (stats now integrated in live_plot)
         left_col = QVBoxLayout()
-        left_col.addWidget(self.live_plot, 3)
-        left_col.addWidget(self.stats, 1)
+        left_col.addWidget(self.live_plot, 1)
+        # self.stats widget removed - statistics now shown in StatisticsCards within LivePlot
         dash_layout.addLayout(left_col, 3)
 
         # Right column: use QuickActionsWidget (separate widget)
@@ -259,9 +259,11 @@ class MainWindow(QMainWindow):
         try:
             if hasattr(self.live_plot, "update_plot"):
                 # call update_plot so it will read storage (simulated or real)
+                # Statistics are now updated within LivePlot.update_plot()
                 self.live_plot.update_plot()
-            if hasattr(self.stats, "update"):
-                self.stats.update(self.storage)
+            # Old stats widget removed - stats now integrated in LivePlot
+            # if hasattr(self.stats, "update"):
+            #     self.stats.update(self.storage)
         except Exception as e:
             print("Refresh error:", e)
 

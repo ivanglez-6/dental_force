@@ -8,7 +8,7 @@ class CSVParser:
     @staticmethod
     def parse(csv_string):
         """
-        Espera formato: sensorId,force,timestamp
+        Espera formato: sensorId,force_kg,timestamp,event_flag
         timestamp preferentemente en ms (como millis).
         Retorna dict o None.
         """
@@ -17,17 +17,19 @@ class CSVParser:
             if not s:
                 return None
             parts = s.split(',')
-            if len(parts) < 3:
+            if len(parts) < 4:
                 return None
             sensor_id = int(parts[0])
-            force = float(parts[1])
+            force_kg = float(parts[1])
             timestamp = int(parts[2])
+            event_flag = float(parts[3])
             dt = datetime.datetime.fromtimestamp(timestamp/1000.0)
             return {
                 "sensorId": sensor_id,
-                "force": force,
+                "force": force_kg,
                 "timestamp": timestamp,
-                "date": dt.isoformat()
+                "date": dt.isoformat(),
+                "event": event_flag
             }
         except Exception as e:
             print("CSVParser error:", e)
