@@ -23,11 +23,11 @@ class TeethVisualization(QWidget):
         super().__init__(parent)
         # Larger size for horizontal layout - more vertical space available
         # Maintains aspect ratio of 1728x2034 (0.85:1)
-        self.setFixedSize(289, 340)
+        self.setFixedSize(293, 345)
 
         # Create container for absolute positioning
         container = QWidget(self)
-        container.setGeometry(0, 0, 289, 340)
+        container.setGeometry(0, 0, 293, 345)
 
         # Base image (always visible)
         self.base_label = QLabel(container)
@@ -56,9 +56,9 @@ class TeethVisualization(QWidget):
         # Load base image
         if os.path.exists(base_path):
             base_pixmap = QPixmap(base_path)
-            scaled_base = base_pixmap.scaled(340, 400, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            scaled_base = base_pixmap.scaled(293, 345, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             self.base_label.setPixmap(scaled_base)
-            self.base_label.setGeometry(0, 0, 340, 400)
+            self.base_label.setGeometry(0, 0, 293, 345)
         else:
             self.base_label.setText("[Base image not found]")
             self.base_label.setStyleSheet("color: gray;")
@@ -66,18 +66,18 @@ class TeethVisualization(QWidget):
         # Load left overlay
         if os.path.exists(left_path):
             left_pixmap = QPixmap(left_path)
-            scaled_left = left_pixmap.scaled(340, 400, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            scaled_left = left_pixmap.scaled(293, 345, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             self.left_overlay.setPixmap(scaled_left)
-            self.left_overlay.setGeometry(0, 0, 340, 400)
+            self.left_overlay.setGeometry(0, 0, 293, 345)
         else:
             print(f"Warning: Left overlay image not found at {left_path}")
 
         # Load right overlay
         if os.path.exists(right_path):
             right_pixmap = QPixmap(right_path)
-            scaled_right = right_pixmap.scaled(340, 400, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            scaled_right = right_pixmap.scaled(293, 345, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             self.right_overlay.setPixmap(scaled_right)
-            self.right_overlay.setGeometry(0, 0, 340, 400)
+            self.right_overlay.setGeometry(0, 0, 293, 345)
         else:
             print(f"Warning: Right overlay image not found at {right_path}")
 
