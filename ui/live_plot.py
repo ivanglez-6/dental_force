@@ -390,11 +390,11 @@ class LivePlot(QWidget):
 
         # Plot left sensor data if available
         if left_forces_kg:
-            self.ax.plot(left_forces_kg, color=COLOR_LEFT, linewidth=2, label='Sensor Izquierdo')
+            self.ax.plot(left_forces_kg, color=COLOR_LEFT, linewidth=2)
 
         # Plot right sensor data if available
         if right_forces_kg:
-            self.ax.plot(right_forces_kg, color=COLOR_RIGHT, linewidth=2, label='Sensor Derecho')
+            self.ax.plot(right_forces_kg, color=COLOR_RIGHT, linewidth=2)
 
         # Add legend if both sensors have data
         if left_forces_kg and right_forces_kg:

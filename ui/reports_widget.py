@@ -109,9 +109,9 @@ class ReportsWidget(QWidget):
 
         # Guardamos el CSV
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write("index,force,timestamp,date\n")
+            f.write("index,sensorId,force,timestamp,date,event\n")
             for i, r in enumerate(registros):
-                f.write(f"{i},{r.get('force',0)},{r.get('timestamp','')},{r.get('date','')}\n")
+                f.write(f"{i},{r.get('sensorId',1)},{r.get('force',0)},{r.get('timestamp','')},{r.get('date','')},{r.get('event',0.0)}\n")
 
         QMessageBox.information(self, "Exportación completa",
                                 f"El reporte se guardó en:\n{file_path}")

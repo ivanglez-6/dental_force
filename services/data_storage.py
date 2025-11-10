@@ -208,7 +208,7 @@ class DataStorage:
         if not data:
             raise ValueError("No data")
         df = pd.DataFrame(data)
-        df = df.rename(columns={"sensorId": "Sensor ID", "force": "Force (N)", "timestamp": "Timestamp", "date": "Date"})
+        df = df.rename(columns={"sensorId": "Sensor ID", "force": "Force (Kg)", "timestamp": "Timestamp", "date": "Date", "event": "Event Flag"})
         df.to_csv(out_path, index=False)
         return out_path
 
@@ -216,7 +216,7 @@ class DataStorage:
         if not self.current_session_data:
             raise ValueError("No data to export")
         df = pd.DataFrame(self.current_session_data)
-        df = df.rename(columns={"sensorId": "Sensor ID", "force": "Force (N)", "timestamp": "Timestamp", "date": "Date"})
+        df = df.rename(columns={"sensorId": "Sensor ID", "force": "Force (Kg)", "timestamp": "Timestamp", "date": "Date", "event": "Event Flag"})
         df.to_csv(out_path, index=False)
         return out_path
 
@@ -232,7 +232,8 @@ class DataStorage:
                     "sensorId": d.get("sensorId"),
                     "force": d.get("force"),
                     "timestamp": d.get("timestamp"),
-                    "date": d.get("date")
+                    "date": d.get("date"),
+                    "event": d.get("event", 0.0)
                 })
         df = pd.DataFrame(rows)
         df.to_csv(out_path, index=False)
