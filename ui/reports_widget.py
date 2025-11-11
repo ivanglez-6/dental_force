@@ -6,6 +6,9 @@ from PySide6.QtCore import Qt
 import matplotlib.pyplot as plt
 import tempfile
 import os
+from pathlib import Path
+from services.dashboard_generator import generate_dashboard
+from ui.image_viewer_dialog import ImageViewerDialog
 
 class ReportsWidget(QWidget):
     def __init__(self, storage):
@@ -53,7 +56,7 @@ class ReportsWidget(QWidget):
             self.session_selector.addItem(f"ID {s['id']} - {start} ({total} lecturas)")
 
     def generate_report(self):
-        """Genera un gráfico simple del registro seleccionado."""
+        """Genera un dashboard completo de bruxismo del registro seleccionado."""
         idx = self.session_selector.currentIndex()
         if idx < 0:
             QMessageBox.warning(self, "Atención", "Selecciona una sesión para graficar.")
@@ -67,17 +70,42 @@ class ReportsWidget(QWidget):
             QMessageBox.warning(self, "Sin datos", "Esta sesión no contiene registros.")
             return
 
-        # Extraemos la fuerza de cada registro
-        fuerzas = [r.get("force", 0) for r in registros]
+        # Validar que los registros tienen los campos necesarios
+        for r in registros:
+            if 'sensorId' not in r:
+                r['sensorId'] = 1
+            if 'force' not in r:
+                r['force'] = 0
+            if 'timestamp' not in r:
+                r['timestamp'] = ''
+            if 'date' not in r:
+                r['date'] = ''
+            if 'event' not in r:
+                r['event'] = 0.0
 
-        plt.figure(figsize=(8, 4))
-        plt.plot(fuerzas, color='blue', label='Fuerza registrada (N)')
-        plt.title(f"Sesión {session_id}")
-        plt.xlabel("Muestra")
-        plt.ylabel("Fuerza (N)")
-        plt.legend()
-        plt.grid(True)
-        plt.show()
+        # Create temporary directory for CSV and PNG
+        temp_dir = tempfile.mkdtemp()
+        temp_csv = Path(temp_dir) / f"session_{session_id}.csv"
+        output_png = Path(temp_dir) / f"dashboard_{session_id}.png"
+
+        try:
+            # Write CSV file silently (same logic as export_report)
+            with open(temp_csv, "w", encoding="utf-8") as f:
+                f.write("index,sensorId,force,timestamp,date,event\n")
+                for i, r in enumerate(registros):
+                    f.write(f"{i},{r.get('sensorId',1)},{r.get('force',0)},{r.get('timestamp','')},{r.get('date','')},{r.get('event',0.0)}\n")
+
+            # Generate the dashboard
+            generate_dashboard(str(temp_csv), str(output_png))
+
+            # Display the dashboard image in a dialog
+            viewer = ImageViewerDialog(self, str(output_png))
+            viewer.exec()
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error generando dashboard: {str(e)}")
+            import traceback
+            traceback.print_exc()
 
     def export_report(self):
         """Exporta la sesión seleccionada como archivo CSV, permitiendo elegir la ubicación."""
