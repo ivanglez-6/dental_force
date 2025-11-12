@@ -115,7 +115,7 @@ class ReportsWidget(QWidget):
             traceback.print_exc()
 
     def export_report(self):
-        """Exporta la sesión seleccionada como archivo CSV, permitiendo elegir la ubicación."""
+        """Exporta la sesión seleccionada como reporte PDF con análisis clínico dual-sensor."""
         idx = self.session_selector.currentIndex()
         if idx < 0:
             QMessageBox.warning(self, "Atención", "Selecciona una sesión para exportar.")
@@ -129,24 +129,30 @@ class ReportsWidget(QWidget):
             QMessageBox.warning(self, "Sin datos", "Esta sesión no contiene registros.")
             return
 
-        # Abrimos un diálogo para seleccionar ruta y nombre del archivo
-        default_name = f"reporte_sesion_{session_id}.csv"
+        # Abrimos un diálogo para seleccionar ruta y nombre del archivo PDF
+        default_name = f"reporte_bruxismo_sesion_{session_id}.pdf"
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            "Guardar reporte",
+            "Guardar reporte PDF",
             default_name,
-            "Archivos CSV (*.csv)"
+            "Archivos PDF (*.pdf)"
         )
 
         if not file_path:
             # El usuario canceló
             return
 
-        # Guardamos el CSV
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write("index,sensorId,force,timestamp,date,event\n")
-            for i, r in enumerate(registros):
-                f.write(f"{i},{r.get('sensorId',1)},{r.get('force',0)},{r.get('timestamp','')},{r.get('date','')},{r.get('event',0.0)}\n")
+        try:
+            # Import PDF generator
+            from services.pdf_generator import generate_bruxism_pdf_report
 
-        QMessageBox.information(self, "Exportación completa",
-                                f"El reporte se guardó en:\n{file_path}")
+            # Generate the PDF
+            generate_bruxism_pdf_report(registros, file_path)
+
+            QMessageBox.information(self, "Exportación completa",
+                                    f"El reporte PDF se guardó exitosamente en:\n{file_path}")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error generando PDF: {str(e)}")
+            import traceback
+            traceback.print_exc()
