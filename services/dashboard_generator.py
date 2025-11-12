@@ -221,10 +221,19 @@ def generate_dashboard(csv_path, output_path, sensor_id=1):
     ax_timeline = fig.add_subplot(gs[1:3, 0:2])
 
     if len(events) > 0:
-        # Plot events as scatter
-        norm = Normalize(vmin=events['force'].min(), vmax=events['force'].max())
+        # Plot events as scatter with FIXED color and size scales
+        # Fixed color scale: 0-14 kg (consistent across all sessions)
+        norm = Normalize(vmin=0, vmax=14)
         colors = [YlOrRd(norm(force)) for force in events['force']]
-        sizes = (events['force'] ** 1.5) * 10
+
+        # Fixed size scale based on force with min/max limits
+        # Size range: 20 (minimum) to 200 (maximum)
+        def calculate_size(force):
+            # Linear mapping: 0kg=20, 14kg=200
+            size = 20 + (force / 14) * 180
+            return max(20, min(200, size))  # Clamp between 20-200
+
+        sizes = [calculate_size(force) for force in events['force']]
 
         ax_timeline.scatter(events['timestamp'], events['force'],
                            s=sizes, c=colors, alpha=0.85,

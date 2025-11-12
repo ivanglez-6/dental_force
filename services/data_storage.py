@@ -19,6 +19,9 @@ class DataStorage:
         self.session_active = False
         self._ensure_db()
 
+        # Auto-import demo session on first run
+        self._ensure_demo_session()
+
     def _connect(self):
         return sqlite3.connect(self.db_path, timeout=30)
 
@@ -196,6 +199,103 @@ class DataStorage:
             c.execute("SELECT data_json FROM sessions WHERE id=?", (session_id,))
             row = c.fetchone()
             return json.loads(row[0]) if row and row[0] else []
+
+    # -------------------
+    # Demo Session Management
+    # -------------------
+    def _demo_session_exists(self):
+        """Check if a demo session already exists in the database"""
+        with self._connect() as conn:
+            c = conn.cursor()
+            c.execute("SELECT id FROM sessions WHERE summary_json LIKE '%\"type\": \"demo\"%'")
+            row = c.fetchone()
+            return row is not None
+
+    def _get_demo_session_id(self):
+        """Get the ID of the demo session if it exists"""
+        with self._connect() as conn:
+            c = conn.cursor()
+            c.execute("SELECT id FROM sessions WHERE summary_json LIKE '%\"type\": \"demo\"%'")
+            row = c.fetchone()
+            return row[0] if row else None
+
+    def import_csv_as_demo_session(self, csv_path):
+        """Import a CSV file as a permanent demo session"""
+        import csv as csv_module
+
+        if not os.path.exists(csv_path):
+            raise FileNotFoundError(f"CSV file not found: {csv_path}")
+
+        # Read and parse CSV
+        records = []
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            reader = csv_module.DictReader(f)
+            for row in reader:
+                record = {
+                    "sensorId": int(row.get('sensorId', 1)),
+                    "force": float(row.get('force', 0)),
+                    "timestamp": row.get('timestamp', ''),
+                    "date": row.get('date', ''),
+                    "event": float(row.get('event', 0.0))
+                }
+                records.append(record)
+
+        if not records:
+            raise ValueError("CSV file is empty or invalid")
+
+        # Calculate summary with demo marker
+        forces = [r["force"] for r in records]
+        summary = {
+            "type": "demo",  # Special marker for demo sessions
+            "name": "Noche Simulada - Datos de Demostración",
+            "totalReadings": len(forces),
+            "avgForce": round(sum(forces)/len(forces), 2),
+            "maxForce": round(max(forces), 2),
+            "minForce": round(min(forces), 2),
+            "start": records[0].get("date"),
+            "end": records[-1].get("date")
+        }
+
+        # Insert into database
+        with self._connect() as conn:
+            c = conn.cursor()
+            c.execute("INSERT INTO sessions (created_at, summary_json, data_json) VALUES (?, ?, ?)",
+                      (datetime.utcnow().isoformat(), json.dumps(summary), json.dumps(records)))
+            conn.commit()
+            session_id = c.lastrowid
+
+        print(f"[DataStorage] Demo session imported successfully (ID: {session_id})")
+        return session_id
+
+    def _ensure_demo_session(self):
+        """Ensure demo session exists in database (auto-import on first run)"""
+        if self._demo_session_exists():
+            return
+
+        # Look for demo CSV file
+        demo_csv_path = os.path.join(os.path.dirname(__file__), "..", "data", "simulated_bruxism_night_new_format.csv")
+        if os.path.exists(demo_csv_path):
+            try:
+                self.import_csv_as_demo_session(demo_csv_path)
+                print("[DataStorage] Demo session auto-imported on first run")
+            except Exception as e:
+                print(f"[DataStorage] Failed to auto-import demo session: {e}")
+        else:
+            print(f"[DataStorage] Demo CSV not found at {demo_csv_path}")
+
+    def load_demo_session(self):
+        """Load the demo session into current_session_data for viewing"""
+        demo_id = self._get_demo_session_id()
+        if not demo_id:
+            print("[DataStorage] No demo session found in database")
+            return False
+
+        # Load demo data into current session
+        self.current_session_data = self.get_session_data(demo_id)
+        self.session_active = True
+        self.current_session_id = demo_id
+        print(f"[DataStorage] Demo session loaded ({len(self.current_session_data)} records)")
+        return True
 
     def delete_session(self, session_id):
         with self._connect() as conn:

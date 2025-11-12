@@ -62,30 +62,6 @@ class BLEWorker(QThread):
         self.quit()
 
 
-class BLECalibrationWorker(QThread):
-    success = Signal(str)
-    error = Signal(str)
-
-    def __init__(self, ble_service, method_name):
-        super().__init__()
-        self.ble_service = ble_service
-        self.method_name = method_name
-
-    def run(self):
-        asyncio.run(self._calibrate())
-
-    async def _calibrate(self):
-        try:
-            if self.method_name == "rest":
-                await self.ble_service.calibrate_rest()
-                self.success.emit("Calibración de reposo enviada exitosamente")
-            elif self.method_name == "bite":
-                await self.ble_service.calibrate_bite()
-                self.success.emit("Calibración de mordida enviada exitosamente")
-        except Exception as e:
-            self.error.emit(f"Error de calibración: {str(e)}")
-
-
 class BLEPanel(QFrame):
     data_callback = None  # callback externo (raw CSV string)
 
@@ -103,30 +79,16 @@ class BLEPanel(QFrame):
         self.connect_btn = QPushButton("🔗 Conectar")
         self.connect_btn.clicked.connect(self.connect_selected)
 
-        # Calibration buttons
-        self.calibrate_rest_btn = QPushButton("🔧 Calibrar Reposo")
-        self.calibrate_rest_btn.setObjectName("calibrateRestBtn")
-        self.calibrate_rest_btn.setEnabled(False)
-        self.calibrate_rest_btn.clicked.connect(self.calibrate_rest_clicked)
-
-        self.calibrate_bite_btn = QPushButton("🔧 Calibrar Mordida")
-        self.calibrate_bite_btn.setObjectName("calibrateBiteBtn")
-        self.calibrate_bite_btn.setEnabled(False)
-        self.calibrate_bite_btn.clicked.connect(self.calibrate_bite_clicked)
-
         self.status_label = QLabel("Estado: Desconectado")
 
         self.layout.addWidget(self.scan_btn)
         self.layout.addWidget(self.device_list)
         self.layout.addWidget(self.connect_btn)
-        self.layout.addWidget(self.calibrate_rest_btn)
-        self.layout.addWidget(self.calibrate_bite_btn)
         self.layout.addWidget(self.status_label)
         self.setLayout(self.layout)
 
         self.scan_worker = None
         self.ble_worker = None
-        self.calibration_worker = None
         self.devices = []
 
     def scan(self):
@@ -159,28 +121,6 @@ class BLEPanel(QFrame):
         self.ble_worker.status.connect(self.on_status)
         self.ble_worker.start()
 
-    def calibrate_rest_clicked(self):
-        if self.ble_worker and self.ble_worker.ble_service:
-            self.status_label.setText("Estado: Enviando comando de calibración de reposo...")
-            self.calibration_worker = BLECalibrationWorker(self.ble_worker.ble_service, "rest")
-            self.calibration_worker.success.connect(self.on_calibration_success)
-            self.calibration_worker.error.connect(self.on_calibration_error)
-            self.calibration_worker.start()
-
-    def calibrate_bite_clicked(self):
-        if self.ble_worker and self.ble_worker.ble_service:
-            self.status_label.setText("Estado: Enviando comando de calibración de mordida...")
-            self.calibration_worker = BLECalibrationWorker(self.ble_worker.ble_service, "bite")
-            self.calibration_worker.success.connect(self.on_calibration_success)
-            self.calibration_worker.error.connect(self.on_calibration_error)
-            self.calibration_worker.start()
-
-    def on_calibration_success(self, msg):
-        self.status_label.setText(f"Estado: {msg}")
-
-    def on_calibration_error(self, msg):
-        self.status_label.setText(f"Estado: {msg}")
-
     def on_data(self, raw):
         # enviar a handler externo si existe
         try:
@@ -191,13 +131,6 @@ class BLEPanel(QFrame):
 
     def on_status(self, text):
         self.status_label.setText(f"Estado: {text}")
-        # Enable/disable calibration buttons based on connection status
-        if "Conectado" in text and "Conectando" not in text:
-            self.calibrate_rest_btn.setEnabled(True)
-            self.calibrate_bite_btn.setEnabled(True)
-        elif "Desconectado" in text or "Error" in text:
-            self.calibrate_rest_btn.setEnabled(False)
-            self.calibrate_bite_btn.setEnabled(False)
 
     def disconnect(self):
         if self.ble_worker:

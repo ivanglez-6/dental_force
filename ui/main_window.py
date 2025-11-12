@@ -144,10 +144,10 @@ class MainWindow(QMainWindow):
         from ui.quick_actions_widget import QuickActionsWidget
         self.quick_widget = QuickActionsWidget()
         # conectar señales del quick widget a métodos del MainWindow
-        self.quick_widget.start_sim.connect(self.start_simulation_session)
         self.quick_widget.start_real.connect(self.start_real_session)
         self.quick_widget.stop.connect(self.stop_session)
         self.quick_widget.clear.connect(self.clear_data)
+        self.quick_widget.load_demo.connect(self.load_demo_session)
 
         right_col = QVBoxLayout()
         right_col.addWidget(self.quick_widget)
@@ -202,7 +202,7 @@ class MainWindow(QMainWindow):
             for b in getattr(self.quick_widget, "__dict__", {}).get("btn_start_sim", []):
                 pass
             # style quick actions buttons properly (iterate attributes)
-            for attr in ("btn_start_sim","btn_start_real","btn_stop","btn_clear"):
+            for attr in ("btn_start_real","btn_stop","btn_clear","btn_load_demo"):
                 b = getattr(self.quick_widget, attr, None)
                 if b:
                     b.setStyleSheet(f"background-color:{btn_bg}; color:{btn_text}; font-weight:600; border-radius:6px; text-align:left; padding-left:8px;")
@@ -343,6 +343,23 @@ class MainWindow(QMainWindow):
             print("Datos borrados.")
         except Exception as e:
             print("clear_data error:", e)
+
+    def load_demo_session(self):
+        """Cargar la sesión de demostración (noche simulada)."""
+        try:
+            if hasattr(self.storage, "load_demo_session"):
+                success = self.storage.load_demo_session()
+                if success:
+                    print("Sesión de demostración cargada exitosamente.")
+                    # Update the plot to show the demo data
+                    if hasattr(self.live_plot, "update_plot"):
+                        self.live_plot.update_plot()
+                else:
+                    print("No se pudo cargar la sesión de demostración.")
+            else:
+                print("Método load_demo_session no disponible.")
+        except Exception as e:
+            print(f"Error cargando sesión demo: {e}")
 
     def on_ble_data(self, raw_csv):
         """Handle incoming BLE data from BLEPanel"""
