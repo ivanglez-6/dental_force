@@ -36,7 +36,8 @@ def generate_dashboard(csv_path, output_path, sensor_id=1):
 
     # Load data
     df = pd.read_csv(csv_path)
-    df['timestamp'] = pd.to_datetime(df['date'].str.replace('T', ' '))
+    # Robust datetime parsing: handles mixed formats (T vs space, with/without milliseconds)
+    df['timestamp'] = pd.to_datetime(df['date'], errors='coerce', infer_datetime_format=True)
 
 
     # Filter data for this sensor
