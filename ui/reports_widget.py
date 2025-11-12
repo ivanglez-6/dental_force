@@ -95,12 +95,19 @@ class ReportsWidget(QWidget):
                 for i, r in enumerate(registros):
                     f.write(f"{i},{r.get('sensorId',1)},{r.get('force',0)},{r.get('timestamp','')},{r.get('date','')},{r.get('event',0.0)}\n")
 
-            # Generate the dashboard
-            generate_dashboard(str(temp_csv), str(output_png))
+            # Generate and display dashboard for sensor 1
+            output_png_sensor1 = Path(temp_dir) / f"dashboard_{session_id}_sensor1.png"
+            generate_dashboard(str(temp_csv), str(output_png_sensor1), sensor_id=1)
 
-            # Display the dashboard image in a dialog
-            viewer = ImageViewerDialog(self, str(output_png))
-            viewer.exec()
+            viewer1 = ImageViewerDialog(self, str(output_png_sensor1))
+            viewer1.exec()
+
+            # Generate and display dashboard for sensor 2
+            output_png_sensor2 = Path(temp_dir) / f"dashboard_{session_id}_sensor2.png"
+            generate_dashboard(str(temp_csv), str(output_png_sensor2), sensor_id=2)
+
+            viewer2 = ImageViewerDialog(self, str(output_png_sensor2))
+            viewer2.exec()
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error generando dashboard: {str(e)}")

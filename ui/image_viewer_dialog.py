@@ -32,7 +32,9 @@ class ImageViewerDialog(QDialog):
             pixmap = QPixmap(self.image_path)
             if pixmap.isNull():
                 raise ValueError("Error cargando imagen generada")
-            self.image_label.setPixmap(pixmap)
+            # Scale the image to fit within reasonable bounds while preserving aspect ratio
+            scaled_pixmap = pixmap.scaled(1150, 750, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            self.image_label.setPixmap(scaled_pixmap)
             self.image_label.setScaledContents(False)  # Preserve aspect ratio
         except Exception as e:
             self.image_label.setText(f"Error cargando imagen: {str(e)}")

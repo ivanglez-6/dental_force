@@ -18,21 +18,9 @@ import textwrap
 from matplotlib.cm import YlOrRd
 from matplotlib.colors import Normalize
 
-# Set publication-quality style parameters
-plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'DejaVu Sans']
-plt.rcParams['font.size'] = 9
-plt.rcParams['axes.labelsize'] = 10
-plt.rcParams['axes.titlesize'] = 11
-plt.rcParams['axes.titleweight'] = 'bold'
-plt.rcParams['xtick.labelsize'] = 8
-plt.rcParams['ytick.labelsize'] = 8
-plt.rcParams['legend.fontsize'] = 8
-plt.rcParams['figure.dpi'] = 300
-plt.rcParams['savefig.dpi'] = 300
 
 
-def generate_dashboard(csv_path, output_path):
+def generate_dashboard(csv_path, output_path, sensor_id=1):
     """
     Generate a comprehensive bruxism dashboard from session data.
 
@@ -50,8 +38,6 @@ def generate_dashboard(csv_path, output_path):
     df = pd.read_csv(csv_path)
     df['timestamp'] = pd.to_datetime(df['date'].str.replace('T', ' '))
 
-    # Process only sensor 1
-    sensor_id = 1
 
     # Filter data for this sensor
     sensor_df = df[df['sensorId'] == sensor_id].copy()
