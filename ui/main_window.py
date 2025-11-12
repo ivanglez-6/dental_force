@@ -297,6 +297,9 @@ class MainWindow(QMainWindow):
     def stop_session(self):
         """Detener sesión (si es simulada detiene simulación). Guarda automáticamente y actualiza historial."""
         try:
+            # Mark session as inactive to stop displaying live data
+            self.storage.session_active = False
+
             # if live_plot simulating, stop it
             if hasattr(self.live_plot, "stop_simulation") and getattr(self.live_plot, "simulating", False):
                 self.live_plot.stop_simulation(save=True)
@@ -325,6 +328,9 @@ class MainWindow(QMainWindow):
     def clear_data(self):
         """Limpiar datos actuales de la sesión y la gráfica (sin afectar historial)."""
         try:
+            # Deactivate session when clearing
+            self.storage.session_active = False
+
             if hasattr(self.storage, "clear_current_session"):
                 self.storage.clear_current_session()
             else:
