@@ -360,26 +360,6 @@ class LivePlot(QWidget):
         if self.simulating:
             self._simulate_one_sample()
 
-        # Only show live data if session is active
-        if not getattr(self.storage, "session_active", False):
-            self.ax.clear()
-            self.ax.set_facecolor("#294B69")
-            self.ax.set_title("Sesión detenida - Presione 'Iniciar sesión real'", color="#0E2C46")
-            self.ax.set_xlabel("Muestra", color="#0E2C46")
-            self.ax.set_ylabel("Fuerza (kg)", color="#0E2C46")
-            self.ax.grid(alpha=0.2)
-            self.canvas.draw()
-            # Reset labels
-            self.force_label.setText("Fuerza: -- kg")
-            self.force_bar.setValue(0)
-            self.event_label.setText("✓ Sin evento | Monitoreo inactivo")
-            self.event_label.setStyleSheet("""
-                background-color: #2c2c2c;
-                color: #888888;
-                border-radius: 4px;
-                padding: 6px;
-            """)
-            return
 
         # Get all current session data
         data = getattr(self.storage, "current_session_data", [])
